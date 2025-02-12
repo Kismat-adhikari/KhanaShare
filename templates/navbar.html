@@ -1,0 +1,205 @@
+<!-- navbar.html -->
+<link rel="stylesheet" href="/static/css/navbar.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<nav class="navbar">
+    <a href="/" class="logo">
+        <span class="letter-c">C</span>
+        <span class="letter-b">B</span>
+    </a>
+    
+    <button class="hamburger">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="nav-links">
+        <a href="/" class="nav-link">
+            <i class="fas fa-home"></i>
+        </a>
+        <a href="/friends" class="nav-link">
+            <i class="fas fa-user-friends"></i>
+        </a>
+        <a href="/post" class="nav-link">
+            <i class="fas fa-utensils"></i>
+        </a>
+        <a href="/profile" class="nav-link">
+            <i class="fas fa-user"></i>
+        </a>
+        
+        <!-- Notification Icon with Dropdown -->
+        <div class="notification-container">
+            <a href="/notifications" class="nav-link notification-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count" style="display: none;">0</span>
+            </a>
+            <div class="notification-dropdown">
+                <div class="notification-list">
+                    <!-- Notifications will be inserted here -->
+                </div>
+                <a href="/notifications" class="view-all-notifications">View All Notifications</a>
+            </div>
+        </div>
+        
+        
+        <!-- Logout Form -->
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const notificationContainer = document.querySelector(".notification-container");
+        const notificationDropdown = document.querySelector(".notification-dropdown");
+        const notificationList = document.querySelector(".notification-list");
+        const notificationCount = document.querySelector(".notification-count");
+    
+        // Function to check if current user is following another user
+        async function checkIfFollowing(username) {
+            try {
+                const response = await fetch(`/is_following/${username}`);
+                const data = await response.json();
+                return data.is_following;
+            } catch (error) {
+                console.error('Error checking follow status:', error);
+                return false;
+            }
+        }
+    
+        // Function to handle follow action
+        async function followUser(username, actionDiv) {
+            try {
+                const response = await fetch(`/follow/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Replace Follow Back button with Message button
+                    actionDiv.innerHTML = createMessageButton(username);
+                }
+            } catch (error) {
+                console.error('Error following user:', error);
+            }
+        }
+    
+        // Helper function to create message button HTML
+        function createMessageButton(username) {
+            return `
+                <a href="/message/${username}" class="notification-btn message-btn">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+            `;
+        }
+    
+        // Helper function to create follow back button HTML
+        function createFollowBackButton(username) {
+            return `
+                <button onclick="followUser('${username}', this.parentElement)" class="notification-btn follow-back-btn">
+                    <i class="fas fa-user-plus"></i> Follow Back
+                </button>
+            `;
+        }
+    
+        // Function to parse notification message and extract username
+        function parseNotification(message) {
+            if (message.includes("started following you")) {
+                const username = message.split(" ")[0];
+                return {
+                    username: username,
+                    isFollowNotification: true,
+                    message: message
+                };
+            }
+            return {
+                username: null,
+                isFollowNotification: false,
+                message: message
+            };
+        }
+    
+        // Updated function to fetch and update notifications
+        async function updateNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const notifications = data.notifications;
+                    notificationList.innerHTML = ''; // Clear existing notifications
+    
+                    if (notifications.length > 0) {
+                        for (const notif of notifications) {
+                            const parsedNotif = parseNotification(notif.message);
+                            const notifElement = document.createElement('div');
+                            notifElement.className = 'notification-item';
+    
+                            let notifContent = `<div class="notification-content">`;
+                            
+                            if (parsedNotif.isFollowNotification) {
+                                notifContent += `<a href="/profile/${parsedNotif.username}">${parsedNotif.username}</a> started following you`;
+                                
+                                // Check if the current user is following back
+                                const isFollowing = await checkIfFollowing(parsedNotif.username);
+                                
+                                notifElement.innerHTML = `
+                                    ${notifContent}</div>
+                                    <div class="notification-actions">
+                                        ${isFollowing ? 
+                                            createMessageButton(parsedNotif.username) : 
+                                            createFollowBackButton(parsedNotif.username)}
+                                    </div>
+                                `;
+                            } else {
+                                notifContent += parsedNotif.message;
+                                notifElement.innerHTML = `${notifContent}</div>`;
+                            }
+    
+                            notificationList.appendChild(notifElement);
+                        }
+    
+                        notificationCount.textContent = notifications.length;
+                        notificationCount.style.display = 'inline';
+                    } else {
+                        notificationList.innerHTML = '<p class="no-notifications">No new notifications</p>';
+                        notificationCount.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+    
+        // Show dropdown on hover for desktop
+        if (window.innerWidth > 768) {
+            notificationContainer.addEventListener("mouseenter", function () {
+                notificationDropdown.classList.add("show");
+                updateNotifications();
+            });
+    
+            notificationContainer.addEventListener("mouseleave", function () {
+                notificationDropdown.classList.remove("show");
+            });
+        }
+    
+        // Make followUser function available globally
+        window.followUser = followUser;
+    
+        // Update notifications periodically (every 30 seconds)
+        updateNotifications(); // Initial update
+        setInterval(updateNotifications, 30000);
+    
+        // Add socket.io listener for real-time notifications
+        socket.on('notification_update', function(data) {
+            if (data.username === currentUsername) {
+                updateNotifications();
+            }
+        });
+    });
+    </script>
+<script src="/static/js/navbar.js"></script>

@@ -1,0 +1,2 @@
+Jayeon|{"type": "follow", "actor": "kisu"}|2025-02-12 20:38:10|read
+kisu|{"type": "follow", "actor": "Jayeon"}|2025-02-12 20:37:14|read

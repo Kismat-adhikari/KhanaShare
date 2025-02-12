@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Profile Page</title>
+    <link rel="stylesheet" href="/static/css/profile.css">
+    <style>
+ /* General Modal Styling */
+#followModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: #1c1c1c; /* Dark Background */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show the Modal */
+#followModal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Background (Overlay) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+/* Show Overlay */
+#followModal.show + .modal-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Header */
+.modal-header {
+    padding: 15px;
+    background: #f46464;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Modal Close Button */
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+    color: white;
+}
+
+.modal-close:hover {
+    color: #ffdada;
+}
+
+/* Modal Content */
+.modal-body {
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    color: white; /* Text color changed for visibility */
+}
+
+/* User List Styling */
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #333; /* Slightly lighter than background */
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user-info {
+    flex-grow: 1;
+}
+
+/* Follow Button Styling */
+.follow-button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.follow-button.not-following {
+    background: #f46464;
+    color: white;
+}
+
+.follow-button.following {
+    background: #444; /* Dark gray for better contrast */
+    color: white;
+}
+
+.follow-button:hover {
+    opacity: 0.8;
+}
+
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    {% include 'streak.html' %}
+   
+    <div class="user-profile-page">
+        <div class="user-profile-header-container">
+            <div class="user-profile-info">
+                <img src="/static/images/avatar.png" alt="Profile Picture" class="user-profile-pic">
+                <div class="user-profile-details">
+                    <h1>{{ user.full_name }}</h1>
+                    <div class="user-profile-badges">
+                        <span class="user-badge">{{ user.cook_type }}</span>
+                        <span class="user-badge">Age {{ user.age }}</span>
+                        <span class="user-badge">{{ user.experience }}</span>
+                    </div>
+                    <div class="user-follow-info">
+                        <div class="follow-info-item">
+                            <span id="followers-count">{{ followers_count }}</span>
+                            <small onclick="openModal('followers', '{{ user.username }}')" style="cursor: pointer;">Followers</small>
+                        </div>
+                        <div class="follow-info-item">
+                            <span id="following-count">{{ following_count }}</span>
+                            <small onclick="openModal('following', '{{ user.username }}')" style="cursor: pointer;">Following</small>
+                        </div>
+                        <div class="follow-info-item">
+                            <span id="post-count">1</span>
+                            <small>Recipe</small>
+                        </div>
+                    </div>
+    
+                    {% if is_own_profile %}
+                        <a href="edit_profile">
+                            <button class="edit-profile-btn">Edit Profile</button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="user-bio">
+            <h2>About Me</h2>
+            <p>{{ user.bio }}</p>
+        </div>
+    
+        <div class="user-profile-content">
+            <div class="user-info-card">
+                <h2>Personal Information</h2>
+                <div class="user-info-grid">
+                    <div class="user-info-item">
+                        <label>Full Name</label>
+                        <p>{{ user.full_name }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Email</label>
+                        <p>{{ user.email }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Cook Type</label>
+                        <p>{{ user.cook_type }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Username</label>
+                        <p>{{ user.username }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Age</label>
+                        <p>{{ user.age }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Phone Number</label>
+                        <p>{{ user.phone }}</p>
+                    </div>
+                    <div class="user-info-item">
+                        <label>Experience</label>
+                        <p>{{ user.experience }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not is_own_profile %}
+        <div class="action-buttons">
+            {% if is_following %}
+                <button onclick="unfollowUser('{{ user.username }}')" class="unfollow-btn">Unfollow</button>
+            {% else %}
+                <button onclick="followUser('{{ user.username }}')" class="follow-btn">Follow</button>
+            {% endif %}
+    
+            <form method="GET" action="/message/{{ user.username }}">
+                <button type="submit" class="message-btn">Message</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Followers/Following Modal -->
+    <div id="followModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <button onclick="closeModal()" class="modal-close">&times;</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <!-- User list will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script>
+    // Store username for use in JavaScript
+const currentUsername = "{{ session['username'] }}";
+const profileUsername = "{{ user.username }}";
+
+// Open Modal
+function openModal(type, username) {
+    const modal = document.getElementById('followModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    modalTitle.textContent = type === 'followers' ? 'Followers' : 'Following';
+    modal.classList.add('show');
+    modalBody.innerHTML = '<div class="text-center">Loading...</div>';
+
+    fetch(`/api/${type}/${username}`)
+        .then(response => response.json())
+        .then(data => {
+            modalBody.innerHTML = '';
+            data.users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.innerHTML = `
+                    <img src="/static/images/avatar.png" alt="${user.username}" class="user-avatar">
+                    <div class="user-info">
+                        <div class="font-semibold">${user.full_name}</div>
+                        <div class="text-sm text-gray-500">@${user.username}</div>
+                    </div>
+                    ${user.username !== currentUsername ? `
+                        <button 
+                            onclick="toggleFollow('${user.username}', this)"
+                            class="follow-button ${user.is_following ? 'following' : 'not-following'}"
+                        >
+                            ${user.is_following ? 'Following' : 'Follow'}
+                        </button>
+                    ` : ''}
+                `;
+                modalBody.appendChild(userItem);
+            });
+        })
+        .catch(error => {
+            modalBody.innerHTML = '<div class="text-center text-red-500">Error loading users</div>';
+        });
+}
+
+// Close Modal
+function closeModal() {
+    const modal = document.getElementById('followModal');
+    modal.classList.remove('show');
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('followModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        closeModal();
+    }
+});
+
+// Toggle Follow/Unfollow
+function toggleFollow(username, button) {
+    const isFollowing = button.classList.contains('following');
+    const endpoint = isFollowing ? '/unfollow/' : '/follow/';
+
+    fetch(endpoint + username, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.classList.toggle('following');
+            button.classList.toggle('not-following');
+            button.textContent = isFollowing ? 'Follow' : 'Following';
+
+            // Update follower/following count
+            updateFollowCounts(data.followers_count, data.following_count);
+        }
+    })
+    .catch(error => console.error('Follow toggle error:', error));
+}
+
+// Follow User
+function followUser(username) {
+    fetch(`/follow/${username}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateFollowCounts(data.followers_count);
+            
+            const button = document.querySelector('.follow-btn');
+            if (button) {
+                button.textContent = 'Unfollow';
+                button.className = 'unfollow-btn';
+                button.onclick = () => unfollowUser(username);
+            }
+        }
+    })
+    .catch(error => console.error('Follow error:', error));
+}
+
+// Unfollow User
+function unfollowUser(username) {
+    fetch(`/unfollow/${username}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateFollowCounts(data.followers_count);
+
+            const button = document.querySelector('.unfollow-btn');
+            if (button) {
+                button.textContent = 'Follow';
+                button.className = 'follow-btn';
+                button.onclick = () => followUser(username);
+            }
+        }
+    })
+    .catch(error => console.error('Unfollow error:', error));
+}
+
+// Update Follower & Following Counts
+function updateFollowCounts(followersCount, followingCount = null) {
+    const followersElem = document.getElementById('followers-count');
+    const followingElem = document.getElementById('following-count');
+
+    if (followersElem) followersElem.textContent = followersCount;
+    if (followingElem && followingCount !== null) followingElem.textContent = followingCount;
+}
+
+// Socket.IO Connection and Event Handling
+document.addEventListener('DOMContentLoaded', function() {
+    const socket = io();
+
+    socket.on('connect', () => console.log('Connected to Socket.IO'));
+
+    socket.on('follow_update', function(data) {
+        console.log('Received follow update:', data);
+
+        if (data.following === profileUsername) {
+            updateFollowCounts(data.followers_count);
+
+            if (data.follower === currentUsername) {
+                const button = document.querySelector('.follow-btn, .unfollow-btn');
+                if (button) {
+                    if (data.action === 'follow') {
+                        button.textContent = 'Unfollow';
+                        button.className = 'unfollow-btn';
+                        button.onclick = () => unfollowUser(profileUsername);
+                    } else {
+                        button.textContent = 'Follow';
+                        button.className = 'follow-btn';
+                        button.onclick = () => followUser(profileUsername);
+                    }
+                }
+            }
+        }
+    });
+});
+
+  </script>
+</body>
+</html>

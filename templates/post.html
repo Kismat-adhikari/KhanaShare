@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Post</title>
+    <style>
+        :root {
+            --primary-color: #f46464;
+            --primary-hover: #e35454;
+            --bg-color: #1c1c1c;
+            --input-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --border-color: #404040;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .post-card {
+            background-color: #252525;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(244, 100, 100, 0.15);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .media-upload {
+            position: relative;
+            width: 100%;
+            min-height: 300px;
+            border: 2px dashed var(--border-color);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            background-color: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+
+        .media-upload:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(244, 100, 100, 0.05);
+        }
+
+        .media-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-placeholder {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .upload-placeholder i {
+            font-size: 3rem;
+            color: #666;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .media-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            max-height: 400px;
+        }
+
+        .hashtags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .hashtag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hashtag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 0.2rem;
+            line-height: 1;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .category-btn {
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .category-btn:hover {
+            background-color: rgba(244, 100, 100, 0.1);
+        }
+
+        .category-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .post-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="post-card">
+            <h1>Create New Post</h1>
+            <form id="post-form">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" placeholder="Enter a catchy title for your dish" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" placeholder="Share your recipe details or story..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Media Upload</label>
+                    <div class="media-upload" id="media-upload-container">
+                        <input type="file" id="media" accept="image/jpeg,image/png,video/mp4">
+                        <div class="upload-placeholder">
+                            <i>📸</i>
+                            <p>Drag and drop your image/video here</p>
+                            <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Supports: JPG, PNG, MP4</p>
+                        </div>
+                        <img id="image-preview" class="media-preview">
+                        <video id="video-preview" class="media-preview" controls></video>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hashtag">Hashtags</label>
+                    <input type="text" id="hashtag" placeholder="Type hashtag and press Enter">
+                    <div class="hashtags-container" id="hashtags-container"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Categories</label>
+                    <div class="categories" id="categories-container">
+                        <button type="button" class="category-btn" data-category="Vegetarian">Vegetarian</button>
+                        <button type="button" class="category-btn" data-category="Non-Veg">Non-Veg</button>
+                        <button type="button" class="category-btn" data-category="Quick Meal">Quick Meal</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Share Post</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('post-form');
+            const hashtagInput = document.getElementById('hashtag');
+            const hashtagsContainer = document.getElementById('hashtags-container');
+            const mediaInput = document.getElementById('media');
+            const imagePreview = document.getElementById('image-preview');
+            const videoPreview = document.getElementById('video-preview');
+            const categoriesContainer = document.getElementById('categories-container');
+            
+            const hashtags = new Set();
+            
+            hashtagInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = hashtagInput.value.trim();
+                    if (value && !value.includes(' ')) {
+                        const hashtag = value.startsWith('#') ? value : `#${value}`;
+                        if (!hashtags.has(hashtag)) {
+                            hashtags.add(hashtag);
+                            const tag = document.createElement('span');
+                            tag.className = 'hashtag';
+                            tag.innerHTML = `
+                                ${hashtag}
+                                <button type="button" onclick="removeHashtag(this, '${hashtag}')">&times;</button>
+                            `;
+                            hashtagsContainer.appendChild(tag);
+                            hashtagInput.value = '';
+                        }
+                    }
+                }
+            });
+
+            // Enhanced media preview
+            mediaInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const placeholder = document.querySelector('.upload-placeholder');
+                        placeholder.style.display = 'none';
+                        
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            videoPreview.style.display = 'none';
+                        } else if (file.type.startsWith('video/')) {
+                            videoPreview.src = e.target.result;
+                            videoPreview.style.display = 'block';
+                            imagePreview.style.display = 'none';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Categories handling
+            categoriesContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('category-btn')) {
+                    e.target.classList.toggle('active');
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                formData.append('title', document.getElementById('title').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('media', mediaInput.files[0]);
+                formData.append('hashtags', Array.from(hashtags).join(','));
+                
+                const selectedCategories = Array.from(
+                    document.querySelectorAll('.category-btn.active')
+                ).map(btn => btn.dataset.category);
+                formData.append('categories', selectedCategories.join(','));
+
+                try {
+                    const response = await fetch('/post', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/';
+                    } else {
+                        throw new Error('Failed to create post');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to create post. Please try again.');
+                }
+            });
+        });
+
+        function removeHashtag(button, tag) {
+            button.parentElement.remove();
+            hashtags.delete(tag);
+        }
+    </script>
+</body>
+</html>

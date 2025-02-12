@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<style>
+    .heat-streak-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 1000;
+        width: auto;
+        transition: all 0.3s ease;
+    }
+
+    .heat-streak-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(255, 59, 48, 0.15);
+        padding: 0.8rem 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 59, 48, 0.1);
+        cursor: pointer;
+    }
+
+    .heat-streak-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.2);
+    }
+
+    .flame-icon {
+        width: 24px;
+        height: 24px;
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .flame-icon svg {
+        width: 100%;
+        height: 100%;
+        transition: all 0.4s ease;
+        filter: drop-shadow(0 0 2px rgba(255, 59, 48, 0.3));
+    }
+
+    .heat-streak-card:hover .flame-icon {
+        transform: scale(1.2);
+    }
+
+    .heat-streak-card:hover .flame-icon svg {
+        animation: fireGlow 1.5s infinite;
+    }
+
+    @keyframes fireGlow {
+        0% {
+            filter: 
+                drop-shadow(0 0 4px rgba(255, 59, 48, 0.8))
+                drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+        }
+        50% {
+            filter: 
+                drop-shadow(0 0 8px rgba(255, 59, 48, 0.9))
+                drop-shadow(0 0 12px rgba(255, 87, 34, 0.9))
+                drop-shadow(0 0 16px rgba(255, 152, 0, 0.8));
+        }
+        100% {
+            filter: 
+                drop-shadow(0 0 4px rgba(255, 59, 48, 0.8))
+                drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+        }
+    }
+
+    .heat-level-1 { --heat-color: #ff7b72; }
+    .heat-level-2 { --heat-color: #ff5449; }
+    .heat-level-3 { --heat-color: #ff3b30; }
+    .heat-level-4 { --heat-color: #ff2d22; }
+    .heat-level-5 { --heat-color: #ff1f17; }
+
+    .streak-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .streak-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ff3b30;
+        line-height: 1;
+        margin-bottom: 0.1rem;
+        transition: color 0.3s ease;
+    }
+
+    .streak-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .heat-streak-card[data-level] .streak-number {
+        color: var(--heat-color);
+    }
+
+    .heat-streak-card[data-level] .flame-icon svg {
+        fill: var(--heat-color);
+    }
+
+    @media (max-width: 768px) {
+        .heat-streak-container {
+            bottom: 1.5rem;
+            right: 1.5rem;
+        }
+
+        .heat-streak-card {
+            padding: 0.6rem 1rem;
+        }
+
+        .streak-number {
+            font-size: 1.3rem;
+        }
+
+        .streak-label {
+            font-size: 0.65rem;
+        }
+
+        .flame-icon {
+            width: 20px;
+            height: 20px;
+        }
+    }
+</style>
+</head>
+<body>
+
+
+<div class="heat-streak-container">
+    <div class="heat-streak-card" id="heatStreakCard">
+        <div class="flame-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22c-4.97 0-9-4.03-9-9 0-3.16 1.66-6.11 4.39-7.74.19-.11.41-.16.63-.13.22.03.41.14.55.3.34.4.76.74 1.23 1.01.69-1.19 1.48-2.03 2.33-2.53C13.39 3.01 14.87 2 16.5 2c.92 0 1.81.22 2.62.64.45.23.61.79.36 1.23-.12.22-.32.38-.56.45-.7.2-1.38.53-1.98.97.27.75.42 1.54.42 2.34C17.36 11.04 15.87 14 12 14c-1.09 0-2 .89-2 2s.9 2 2 2 2-.89 2-2c0-.73.39-1.41 1.03-1.76.64-.36 1.43-.33 2.05.08C18.21 15.04 19 16.43 19 18c0 2.21-1.79 4-4 4zm0-2c1.1 0 2-.89 2-2 0-.68-.35-1.3-.92-1.66-.45.98-1.41 1.66-2.58 1.66s-2.13-.68-2.58-1.66c-.57.36-.92.98-.92 1.66 0 1.11.9 2 2 2z"/>
+            </svg>
+        </div>
+        <div class="streak-info">
+            <div class="streak-number" id="streakCounter">{{streak}}</div>
+            <div class="streak-label">Heat Streak</div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const streakCard = document.getElementById('heatStreakCard');
+        const streakNumber = document.getElementById('streakCounter');
+        const streak = parseInt(streakNumber.textContent);
+
+        function getHeatLevel(value) {
+            if (value >= 30) return '5';
+            if (value >= 20) return '4';
+            if (value >= 14) return '3';
+            if (value >= 7) return '2';
+            return '1';
+        }
+
+        // Fast animation
+        let currentNumber = 0;
+        const duration = 500; // Faster animation (0.5s)
+        const steps = 30; // Fewer steps for quicker transition
+        const increment = streak / steps;
+        const stepDuration = duration / steps;
+
+        const animation = setInterval(() => {
+            currentNumber += increment;
+            const roundedNumber = Math.floor(currentNumber);
+
+            // Update number
+            streakNumber.textContent = roundedNumber;
+
+            // Gradually update heat level color
+            const newLevel = getHeatLevel(roundedNumber);
+            if (streakCard.dataset.level !== newLevel) {
+                streakCard.dataset.level = newLevel;
+                streakCard.className = `heat-streak-card heat-level-${newLevel}`;
+            }
+
+            // Stop animation when finished
+            if (roundedNumber >= streak) {
+                streakNumber.textContent = streak;
+                clearInterval(animation);
+            }
+        }, stepDuration);
+    });
+</script>
+
+
+
+</body>
+</html>

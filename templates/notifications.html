@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .notifications-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notification-content {
+            flex-grow: 1;
+        }
+
+        .notification-message {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .notification-message a {
+            color: #f46464;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .notification-message a:hover {
+            text-decoration: underline;
+        }
+
+        .notification-time {
+            color: #666;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .notification-actions {
+            margin-left: 15px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .follow-back-btn {
+            background-color: #f46464;
+            color: white;
+        }
+
+        .follow-back-btn:hover {
+            background-color: #ff7676;
+        }
+
+        .message-btn {
+            background-color: #2d2d2d;
+            color: white;
+        }
+
+        .message-btn:hover {
+            background-color: #3d3d3d;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    {% include 'streak.html' %}
+    
+    <div class="notifications-container">
+        <h2>Notifications</h2>
+        
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="notification-item">
+                    <div class="notification-content">
+                        <p class="notification-message">
+                            {% if "started following you" in notification.message %}
+                                {% set username = notification.message.split()[0] %}
+                                <a href="/profile/{{ username }}">{{ username }}</a>
+                                started following you
+                            {% else %}
+                                {{ notification.message }}
+                            {% endif %}
+                        </p>
+                        {% if notification.timestamp %}
+                            <span class="notification-time">{{ notification.timestamp }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if "started following you" in notification.message %}
+                        {% set follower = notification.message.split()[0] %}
+                        <div class="notification-actions">
+                            {% if not is_following(session.username, follower) %}
+                                <button onclick="followUser('{{ follower }}')" class="action-btn follow-back-btn">
+                                    <i class="fas fa-user-plus"></i> Follow Back
+                                </button>
+                            {% else %}
+                                <a href="/message/{{ follower }}" class="action-btn message-btn">
+                                    <i class="fas fa-comment"></i> Message
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function followUser(username) {
+            fetch(`/follow/${username}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Replace the Follow Back button with Message button
+                    const actionDiv = event.target.closest('.notification-actions');
+                    actionDiv.innerHTML = `
+                        <a href="/message/${username}" class="action-btn message-btn">
+                            <i class="fas fa-comment"></i> Message
+                        </a>
+                    `;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

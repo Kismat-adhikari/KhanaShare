@@ -1,0 +1,4 @@
+{
+    "kisu": "The CEO of CB and founding member.",
+    "Jayeon": "s"
+}

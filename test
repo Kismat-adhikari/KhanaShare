@@ -1,0 +1,28 @@
+    <h1>{{ user.full_name }}</h1>
+    <span class="user-badge">{{ user.cook_type }}</span>
+    <span class="user-badge">Age {{ user.age }}</span>
+    <span class="user-badge">{{ user.experience }}</span>
+    <span id="followers-count">{{ followers_count }}</span>
+    <span id="following-count">{{ following_count }}</span>
+    <p>{{ user.full_name }}</p>
+    <p>{{ user.email }}</p>
+    <p>{{ user.cook_type }}</p>
+    <p>{{ user.username }}</p>
+    <p>{{ user.age }}</p>
+    <p>{{ user.phone }}</p>
+    <p>{{ user.experience }}</p>
+
+
+    <!-- Update the follow/message buttons section -->
+{% if not is_own_profile %}
+<div class="action-buttons">
+    {% if is_following %}
+        <button onclick="unfollowUser('{{ user.username }}')" class="unfollow-btn">Unfollow</button>
+    {% else %}
+        <button onclick="followUser('{{ user.username }}')" class="follow-btn">Follow</button>
+    {% endif %}
+    <form method="GET" action="{{ url_for('message_user', username=user.username) }}">
+        <button type="submit" class="message-btn">Message</button>
+    </form>
+</div>
+{% endif %}

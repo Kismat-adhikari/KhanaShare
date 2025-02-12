@@ -1,0 +1,90 @@
+
+<!-- Updated edit_profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <style>
+        .form-group {
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 8px;
+        }
+        .disabled-field {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Edit Profile</h1>
+
+    <form id="editProfileForm">
+        <div class="form-group">
+            <label>Full Name:</label>
+            <input type="text" value="{{ user.full_name }}" class="disabled-field" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" value="{{ user.username }}" class="disabled-field" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="text" value="{{ user.email }}" class="disabled-field" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>Cook Type:</label>
+            <input type="text" value="{{ user.cook_type }}" class="disabled-field" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>Age:</label>
+            <input type="text" value="{{ user.age }}" class="disabled-field" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="bio">Bio:</label>
+            <textarea id="bio" name="bio">{{ user.bio }}</textarea>
+        </div>
+
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <script>
+        document.getElementById("editProfileForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const bio = document.getElementById("bio").value;
+
+            fetch("/edit_profile", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ bio: bio })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Profile updated successfully!");
+                    window.location.href = "/profile";
+                } else {
+                    alert("Error updating profile: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while updating the profile.");
+            });
+        });
+    </script>
+</body>
+</html>

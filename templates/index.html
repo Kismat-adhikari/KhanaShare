@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <!-- Include the Navbar -->
+    {% include 'navbar.html' %}
+    {% include 'streak.html' %}
+
+
+    <div class="posts-container">
+        {% for post in posts %}
+        <div class="post">
+            <h2>{{ post.title }}</h2>
+            {% if post.media.endswith(('.jpg', '.jpeg', '.png')) %}
+                <img src="{{ url_for('static', filename=post.media.replace('static/', '')) }}" alt="{{ post.title }}">
+            {% elif post.media.endswith('.mp4') %}
+                <video controls width="100%">
+                    <source src="{{ url_for('static', filename=post.media.replace('static/', '')) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% endif %}
+            <p>{{ post.description }}</p>
+            <div class="hashtags">
+                {% for hashtag in post.hashtags %}
+                <span>{{ hashtag }}</span>
+                {% endfor %}
+            </div>
+            <div class="categories">
+                {% for tag in post.tags %}
+                <span>{{ tag }}</span>
+                {% endfor %}
+            </div>
+            <div class="timestamp">{{ post.timestamp }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
